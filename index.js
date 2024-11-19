@@ -17,10 +17,13 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
         console.error('Failed to connect to MongoDB:', err);
     });
 
-// Import routes
-const todosRoutes = require('./routes/todos');
+// Root route for base URL
+app.get('/', (req, res) => {
+    res.send('<h1>Welcome to the To-Do List API</h1><p>Use the following endpoints to interact with the API:</p><ul><li><strong>GET /todos</strong> - Retrieve all to-dos</li><li><strong>POST /todos</strong> - Create a new to-do</li><li><strong>GET /todos/:id</strong> - Retrieve a specific to-do</li><li><strong>PUT /todos/:id</strong> - Update a to-do</li><li><strong>DELETE /todos/:id</strong> - Delete a to-do</li></ul>');
+});
 
-// Register routes
+// Import and register routes
+const todosRoutes = require('./routes/todos');
 app.use('/todos', todosRoutes);
 
 // Start the server
