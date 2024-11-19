@@ -1,87 +1,58 @@
 const express = require('express');
-const Todo = require('../models/todo');
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-    try {
-        const { title, description } = req.body;
+// Mock data for testing
+let todos = [];
 
-        if (!title) {
-            return res.status(400).json({ error: 'Title is required' });
-        }
-
-        const newTodo = new Todo({
-            title,
-            description: description || '',
-        });
-
-        await newTodo.save();
-        res.status(201).json(newTodo);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create to-do item' });
+// POST /todos - Create a new to-do
+router.post('/', (req, res) => {
+    const { title, description } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: 'Title is required' });
     }
+    const todo = { id: todos.length + 1, title, description, completed: false };
+    todos.push(todo);
+    res.status(201).json(todo);
 });
 
-router.get('/', async (req, res) => {
-    try {
-        const todos = await Todo.find();
-        res.status(200).json(todos);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve to-dos' });
-    }
+// GET /todos - Retrieve all to-dos
+router.get('/', (req, res) => {
+    res.status(200).json(todos);
 });
 
-router.get('/:id', async (req, res) => {
-    try {
-        const todo = await Todo.findById(req.params.id);
-
-        if (!todo) {
-            return res.status(404).json({ error: 'To-do not found' });
-        }
-
-        res.status(200).json(todo);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve to-do' });
+// GET /todos/:id - Retrieve a specific to-do
+router.get('/:id', (req, res) => {
+    const todo = todos.find(t => t.id == req.params.id);
+    if (!todo) {
+        return res.status(404).json({ error: 'Todo not found' });
     }
+    res.status(200).json(todo);
 });
 
-router.put('/:id', async (req, res) => {
-    try {
-        const { title, description, completed } = req.body;
-
-        const todo = await Todo.findById(req.params.id);
-
-        if (!todo) {
-            return res.status(404).json({ error: 'To-do not found' });
-        }
-
-        if (!title) {
-            return res.status(400).json({ error: 'Title is required' });
-        }
-
-        todo.title = title;
-        todo.description = description || todo.description;
-        todo.completed = completed !== undefined ? completed : todo.completed;
-
-        await todo.save();
-        res.status(200).json(todo);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update to-do' });
+// PUT /todos/:id - Update a specific to-do
+router.put('/:id', (req, res) => {
+    const todo = todos.find(t => t.id == req.params.id);
+    if (!todo) {
+        return res.status(404).json({ error: 'Todo not found' });
     }
+    const { title, description, completed } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: 'Title is required' });
+    }
+    todo.title = title;
+    todo.description = description;
+    todo.completed = completed;
+    res.status(200).json(todo);
 });
 
-router.delete('/:id', async (req, res) => {
-    try {
-        const todo = await Todo.findByIdAndDelete(req.params.id);
-
-        if (!todo) {
-            return res.status(404).json({ error: 'To-do not found' });
-        }
-
-        res.status(200).json({ message: 'To-do item deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to delete to-do' });
+// DELETE /todos/:id - Delete a specific to-do
+router.delete('/:id', (req, res) => {
+    const index = todos.findIndex(t => t.id == req.params.id);
+    if (index === -1) {
+        return res.status(404).json({ error: 'Todo not found' });
     }
+    todos.splice(index, 1);
+    res.status(200).json({ message: 'Todo deleted successfully' });
 });
 
 module.exports = router;
